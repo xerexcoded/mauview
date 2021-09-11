@@ -159,8 +159,50 @@ fn try_print_gif<R:Read>(conf: &Config,input_stream:R,(tx,rx):TxRx) -> ViuResult
         while let Some((delay,frame)) = iter.next(){
             let(_print_width,print_height)=viuer::print(&frame,&conf.viuer_config)?;
             if(conf.static_gif) {
-                
+                break 'infinite;
+            }
+            thread::sleep(match conf.frame_duration{
+
+                None => *delay,
+                Some(duration) => duration,
+            });
+
+            //if ctrlc is recieved then respond so the handler can clear the terminal from the leftover colors
+            if rx.try_recv().is_ok(){
+                return tx.send(true).map_err(|_| {
+                    Error::new(ErrorKind::Other,"Could not send signal to clean up.").into()
+                });
+            };
+
+            //keep replacing old pixels as the gif goes on so that scrollback 
+            // buffer is not filled(do not do that if it is last frame of the gif or a couple of files are being processed)
+            if iter.peeK().is_some() || conf.loop_gif{
+                //to get height of terminal cells divide by 2 as height is in pixels
+                if let Err(e) = execute!(stdout(),cursor::MoveUp(print_height as u16)){
+
+                    if e.kind() == ErrorKind::BrokenPipe{
+                        //stop printing
+                        break 'infinite;
+                    }
+                    else{
+                        return Err(e.into());
+                    }
+                }
             }
         }
+        if !conf.loop_gif{
+            break 'infinite;
+        }
+    }
+    Ok(())
+}
+#[cfg(test)]
+mod test{
+    use super::*;
+    #[test]
+    fn test_view_without_extension(){
+        let conf = Config::test_config();
+        let(tx,rx)= mpsc::channel();
+        view_file(&conf, "img/bfa", (&tx,&rx).unwrap());
     }
 }
