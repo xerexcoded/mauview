@@ -1,9 +1,9 @@
-use clap::{value_t,ArgMatches}
+use clap::{value_t,ArgMatches};
 use std::time::Duration;
 use viuer::Config as ViuerConfig;
 
 pub struct Config<'a>{
-    pub files:vec<&'a str>,
+    pub files:Vec<&'a str>,
     pub loop_gif:bool,
     pub name:bool,
     pub mirror : bool,
@@ -36,7 +36,7 @@ impl<'a>Config<'a>{
         let transparent = matches.is_present("transparent");
         let use_blocks = matches.is_present("blocks");
         let viuer_config=ViuerConfig{
-            tranparent,width,height,absolute_offset:false,use_kitty:!use_blocks,
+            transparent,width,height,absolute_offset:false,use_kitty:!use_blocks,
             use_iterm:!use_blocks,
             #[cfg(feature="sixel")]
             use_sixel:!use_blocks,
