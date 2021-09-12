@@ -10,7 +10,7 @@ fn main(){
         .author(crate_authors!())
         .about(crate_description!())
         .setting(ArgRequiredElseHelp)
-        .usage("viu [FLAGS] [OPTIONS] [FILE]... 
+        .usage("mauview [FLAGS] [OPTIONS] [FILE]... 
                when file is - , read standard input.",)
         .arg(Arg::with_name("FILE")
              .help("The image to be displayed")
